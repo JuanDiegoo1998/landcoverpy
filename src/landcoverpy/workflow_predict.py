@@ -214,6 +214,49 @@ def _process_tile_predict(tile, execution_mode, used_columns=None, use_block_win
         rasters_by_season[season]["temp_product_folder"] = temp_product_folder
 
 
+    lidar_products_used = [
+        "Verticality", 
+        "SurfaceVariation", 
+        "Scattering", 
+        #"RadialDensity", 
+        "Planarity", 
+        #"Omnivariance", 
+        #"NormalZ", 
+        #"NormalY", 
+        #"NormalX", 
+        "max_height", 
+        "Linearity",
+        "elevation", 
+        #"EigenvalueSum", 
+        #"Eigenentropy", 
+        "DemantkeVerticality", 
+        #"Curvature", 
+        #"Anisotropy",
+    ]
+
+    #lidar_products_used = []
+
+    lidar_butcket = "pnoa-lidar"
+    lidar_paths = {}
+    for lidar_name in lidar_products_used:
+        try:
+            if lidar_name not in used_columns:
+                continue
+            lidar_path = Path("rasters_sam", "merged", f"{lidar_name}_interpolated_cropped.tif")
+            local_lidar_path = Path(settings.TMP_DIR, lidar_path.name)
+            minio_client.fget_object(lidar_butcket, str(lidar_path), str(local_lidar_path))
+            lidar_paths[lidar_name] = local_lidar_path
+        except Exception as e:
+            print(f"Error reading lidar raster {lidar_name}: {e}")
+            continue
+
+    dems_raster_names = [
+        "slope",
+        "aspect",
+        "dem",
+    ]
+
+
     if use_aster:
         dems_raster_names = [
             "slope",
@@ -299,6 +342,39 @@ def _process_tile_predict(tile, execution_mode, used_columns=None, use_block_win
                 raster_masked = np.ma.compressed(raster_masked)
 
                 window_tile_dict.update({f"{season}_{raster_name}": raster_masked})
+
+
+        for lidar_name in lidar_products_used:
+            if lidar_name in used_columns:
+
+                lidar_kwargs = _get_kwargs_raster(lidar_paths[lidar_name])
+                lidar_kwargs_window = lidar_kwargs.copy()
+                lidar_kwargs_window["width"] = window.width
+                lidar_kwargs_window["height"] = window.height
+                lidar_kwargs_window["transform"] = rasterio.windows.transform(window, lidar_kwargs["transform"])
+
+                crop_mask = np.zeros(shape=(int(lidar_kwargs_window["height"]), int(lidar_kwargs_window["width"])),dtype=np.uint8)
+
+                band_normalize_range = normalize_range.get(lidar_name, None)
+                raster = _read_raster(
+                    band_path=lidar_paths[lidar_name],
+                    rescale=True,
+                    normalize_range=band_normalize_range,
+                    window=window
+                )
+                
+                print("lidar_name", lidar_name)
+                print("lidar_paths[lidar_name]", lidar_paths[lidar_name])
+                print("lidar_kwargs", lidar_kwargs)
+                print("lidar_kwargs_window", lidar_kwargs_window)
+                print("crop_mask.shape", crop_mask.shape)
+                print("raster.shape", raster.shape)
+                print("lidar_paths", lidar_paths)           
+
+                raster_masked = np.ma.masked_array(raster, mask=crop_mask)
+                raster_masked = np.ma.compressed(raster_masked).flatten()
+                window_tile_dict.update({lidar_name: raster_masked})
+
 
         for dem_name in dems_raster_names:
             # Add dem and aspect data

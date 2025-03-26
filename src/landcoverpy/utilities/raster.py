@@ -446,18 +446,21 @@ def _rescale_band(
 
         rescaled_raster = np.ndarray(
             shape=(kwargs["count"], new_kwargs["height"], new_kwargs["width"]), dtype=np.float32)
-
-        reproject(
-            source=band,
-            destination=rescaled_raster,
-            src_transform=kwargs["transform"],
-            src_crs=kwargs["crs"],
-            dst_resolution=(new_kwargs["width"], new_kwargs["height"]),
-            dst_transform=new_kwargs["transform"],
-            dst_crs=new_kwargs["crs"],
-            resampling=Resampling.nearest,
-        )
-        band = rescaled_raster
+        # if any shape of band, rescaled_raster is 0  band = np.zero
+        try:
+            reproject(
+                source=band,
+                destination=rescaled_raster,
+                src_transform=kwargs["transform"],
+                src_crs=kwargs["crs"],
+                dst_resolution=(new_kwargs["width"], new_kwargs["height"]),
+                dst_transform=new_kwargs["transform"],
+                dst_crs=new_kwargs["crs"],
+                resampling=Resampling.nearest,
+            )
+            band = rescaled_raster
+        except:
+            band = np.zeros(shape=(kwargs["count"], new_kwargs["height"], new_kwargs["width"]), dtype=np.float32)
         kwargs = new_kwargs
 
     return band, kwargs

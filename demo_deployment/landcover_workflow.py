@@ -15,7 +15,7 @@ def landcover_workflow():
     # 2. Train the models 
     train_model_land_cover()
     
-    subcategories_to_predict_env = os.getenv("SUBCATEGORY_PREDICTION", "[]")
+    subcategories_to_predict_env = '["built-up", "waterbody", "nature"]'
     try:
         subcategories_to_predict = set(json.loads(subcategories_to_predict_env))
     except json.JSONDecodeError:
@@ -26,8 +26,8 @@ def landcover_workflow():
 
 
     # 3. Get tiles to predict
-    if os.getenv("TILES_TO_PREDICT").lower() == "prediction":
-        data_file = os.getenv("DB_FILE")
+    if "prediction" == "prediction":
+        data_file = "/home/juandiego/landcoverpy/demo_deployment/data/dataset.csv"
         if data_file.endswith(".kmz"):
             data_file = _kmz_to_geojson(data_file)
         if data_file.endswith(".csv"):
@@ -35,7 +35,7 @@ def landcover_workflow():
         polygons_per_tile = _group_validated_data_points_by_tile(data_file)
         tiles_to_predict = list(polygons_per_tile.keys())
     else:
-        tiles_to_predict_env = os.getenv("TILES_TO_PREDICT", "[]")
+        tiles_to_predict_env = "[30SUF]"
         try:
             tiles_to_predict = set(json.loads(tiles_to_predict_env))
         except json.JSONDecodeError:

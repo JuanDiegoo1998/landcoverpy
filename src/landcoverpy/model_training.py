@@ -63,7 +63,7 @@ def train_model_land_cover(n_jobs: int = 2):
 
     used_columns = _feature_reduction(x_train_data, y_train_data)
 
-    train_size = 0.85
+    train_size = 0.60
 
     train_coordinates_label = []
     test_coordinates_label = []
@@ -178,7 +178,7 @@ def train_second_level_models(lc_classes: List[str], n_jobs: int = 2, n_trees: i
 
         used_columns = _feature_reduction(x_train_data, y_train_data)
 
-        train_size = 0.80
+        train_size = 0.60
 
         train_coordinates_label = []
         test_coordinates_label = []

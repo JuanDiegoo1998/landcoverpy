@@ -1,13 +1,7 @@
-from configure_minio_mongo import create_minio_buckets, create_mongo_collections
-from download_products import download_products
+import os
 from landcover_workflow import landcover_workflow
 
-print("Creating Minio buckets and MongoDB collections...")
-create_minio_buckets()
-create_mongo_collections()
-
-print("Downloading products and generating composites...")
-download_products()
+from landcoverpy.config import settings
 
 print("Running landcover workflow...")
 landcover_workflow()

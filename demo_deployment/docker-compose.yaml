@@ -9,6 +9,8 @@ services:
       - ./minio_data:/data
     ports:
       - "31113:9001"
+      - "31113:9001"  # Consola web
+      - "31115:9000"  # API de MinIO
     command: server /data --console-address ":9001"
 
   mongo:
@@ -36,11 +38,11 @@ services:
       - MONGO_USERNAME=adminadmin
       - MONGO_PASSWORD=adminadmin
       - GOOGLE_APPLICATION_CREDENTIALS=/app/data/gcloud-user.json # File can be generated in https://console.cloud.google.com/apis/credentials
-      - MINIO_DATA_FOLDER_NAME=demo_landcoverpy # Name of the folder where the data is stored in Minio. Use it like a "project" name.
+      - MINIO_DATA_FOLDER_NAME=test_malaga_nolidar_11_03 # Name of the folder where the data is stored in Minio. Use it like a "project" name.
       - MIN_USEFUL_DATA_PERCENTAGE=30 # Minimum percentage of useful data to be used in the composite (0 - 100). A high number will increase the quality of the composite but will decrease the number of products to be used, which can lead to a worse result. Recommended value: 30
       - MAX_PRODUCTS_COMPOSITE=3 # Number of products to be used in the composite. A high number will increase the processing time and memory usage (>=2). Recommended value: 4
       - TILES_TO_PREDICT=prediction # Expected format `["NNLLL", "NNLLL", ...]` being N a number and L a letter. If you want to predict the tiles of the data provided for training, use `prediction`.
-      - SUBCATEGORY_PREDICTION=["forest", "no_forest"] # Expected format `["category1", "category2", ...]` being the subcategories to predict. If you dont want to predict any subcategory, or you didnt provide any subcategory for training, use `[]`.
+      - SUBCATEGORY_PREDICTION=["built-up", "waterbody", "nature"] # Expected format `["category1", "category2", ...]` being the subcategories to predict. If you dont want to predict any subcategory, or you didnt provide any subcategory for training, use `[]`.
     volumes:
       - ./app_data:/app/data
     restart: on-failure:5

@@ -174,8 +174,8 @@ def _compute_matrix(
     x_tick_labels[-1] = ""
     y_tick_labels = ax.get_yticklabels()
     y_tick_labels[-1] = ""
-    ax.set_xticklabels(x_tick_labels, fontsize=15)
-    ax.set_yticklabels(y_tick_labels, fontsize=15)
+    ax.set_xticklabels(x_tick_labels, fontsize=15, rotation=45, ha='right')
+    ax.set_yticklabels(y_tick_labels, fontsize=15, rotation=0, va='center')
 
     # face colors list
     # doesn't work for matplotlib==3.5.1 (ours currently)

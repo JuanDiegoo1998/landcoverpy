@@ -81,6 +81,57 @@ def _process_tile_train(tile, polygons_in_tile, use_aster=True):
     # Dataframe for storing data of a tile
     tile_df = None
 
+
+
+
+    lidar_products_used = [
+        "Verticality", 
+        "SurfaceVariation", 
+        "Scattering", 
+        #"RadialDensity", 
+        "Planarity", 
+        #"Omnivariance", 
+        #"NormalZ", 
+        #"NormalY", 
+        #"NormalX", 
+        "max_height", 
+        "Linearity",
+        "elevation", 
+        #"EigenvalueSum", 
+        #"Eigenentropy", 
+        "DemantkeVerticality", 
+        #"Curvature", 
+        #"Anisotropy",
+    ]
+
+    #lidar_products_used = []
+
+    lidar_butcket = "pnoa-lidar"
+    for lidar_name in lidar_products_used:
+        try:
+            lidar_path = Path("rasters_sam", "merged", f"{lidar_name}_interpolated_cropped.tif")
+            local_lidar_path = Path(settings.TMP_DIR, lidar_path.name)
+            minio_client.fget_object(lidar_butcket, str(lidar_path), str(local_lidar_path))
+            lidar_kwargs = _get_kwargs_raster(local_lidar_path)
+            crop_mask, label_lon_lat = _mask_polygons_by_tile(polygons_in_tile, lidar_kwargs)
+            band_normalize_range = normalize_range.get(lidar_name, None)
+            raster = _read_raster(
+                band_path=local_lidar_path,
+                rescale=False,
+                normalize_range=band_normalize_range
+            )
+            raster_masked = np.ma.masked_array(raster, mask=crop_mask)
+            raster_masked = np.ma.compressed(raster_masked).flatten()
+            raster_df = pd.DataFrame({lidar_name: raster_masked})
+            tile_df = pd.concat([tile_df, raster_df], axis=1)
+        except Exception as e:
+            print(f"Error reading lidar raster {lidar_name}: {e}")
+            continue
+
+
+
+
+
     if use_aster:
         dems_raster_names = [
             "slope",
